@@ -23,7 +23,7 @@ EEG to a working single-trial classifier for that signal:
 5.  **Classify** left vs. right imagery with Common Spatial Patterns (CSP) + LDA, both in a
    fixed window and as a time-resolved sliding-window decoder
 
-Everything lives in a single, well-commented notebook: [`project.ipynb`](project.ipynb).
+Everything lives in a single, well-commented notebook: [`eeg_mi.ipynb`](eeg_mi.ipynb).
 
 ## 📊 Dataset
 
@@ -86,7 +86,7 @@ is picking up on.
 </p>
 
 **Static-window classification.** CSP+LDA on the 1.0–2.5 s window (the heart of the
-imagery period) reached **80.0% ± 6.7%** mean 5-fold cross-validated accuracy
+imagery period) reached **82.3% ± 11%** mean 5-fold cross-validated accuracy
 (chance = 50%):
 
 <p align="center">
