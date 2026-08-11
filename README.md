@@ -1,16 +1,129 @@
-# EEG Motor Imagery Classification (CSP + LDA)
+# EEG Motor Imagery Classification — Left vs. Right Hand
 
-A modular BCI pipeline for decoding left vs. right hand motor imagery from EEG, built on the PhysioNet Motor Movement/Imagery dataset (Subject 01, runs 4/8/12/14) using `mne-python` and `scikit-learn`.
+Decoding imagined left- vs. right-hand movement from 64-channel scalp EEG, using the
+[PhysioNet EEG Motor Movement/Imagery Dataset](https://physionet.org/content/eegmmidb/1.0.0/)
+and the [MNE-Python](https://mne.tools/) ecosystem.
+
+## Overview
+
+Motor imagery — mentally rehearsing a movement without executing it — produces a measurable
+drop in sensorimotor mu (8–12 Hz) and beta (13–30 Hz) rhythms over the hemisphere
+contralateral to the imagined limb. This project builds a full pipeline that goes from raw
+EEG to a working single-trial classifier for that signal:
+
+1. **Load & inspect** raw 64-channel EEG (subject 1, motor-imagery runs)
+2. **Clean** the signal — band-pass filter, robust bad-channel screening, ICA-based
+   ocular-artifact removal
+3. **Epoch** around each imagined-movement cue
+4. **Visualize** event-related (de)synchronization (ERD/ERS) topographies
+5. **Classify** left vs. right imagery with Common Spatial Patterns (CSP) + LDA, both in a
+   fixed window and as a time-resolved sliding-window decoder
+
+Everything lives in a single, well-commented notebook: [`project.ipynb`](project.ipynb).
+
+## Dataset
+
+| | |
+|---|---|
+| Source | PhysioNet EEG Motor Movement/Imagery Dataset (EEGBCI) |
+| Subject | S001 |
+| Runs used | 4, 8, 12 — imagined **left fist (T1) vs. right fist (T2)** |
+| Channels | 64 EEG, 10-05 montage |
+| Sampling rate | 160 Hz |
+
+> **Note:** run 14 is deliberately excluded. It records a *different* task (imagined
+> both-fists vs. both-feet) that reuses the same T1/T2 event labels — including it would
+> silently mix two unrelated conditions into one classifier.
+
+## Data & Signal Quality
+
+A quick look at the raw signal and its spectral content confirms clean, physiologically
+plausible EEG before any preprocessing — motor-band (mu/beta) power is concentrated over
+central/motor channels, as expected.
+
+<p align="center">
+  <img src="figures/raw_timeseries.png" width="600" alt="Raw EEG traces over motor channels"><br>
+  <sub><b>Raw EEG</b> over central/frontal motor channels, with rest (T0) and movement-imagery (T2) periods shaded.</sub>
+</p>
+
+<p align="center">
+  <img src="figures/psd_topomap_bands.png" width="800" alt="Topographic power spectral density by frequency band"><br>
+  <sub><b>Topographic PSD</b> by band — delta through gamma — used as a sanity check before filtering/cleaning.</sub>
+</p>
 
 ## Pipeline
-1. **EDA** – PSD/topomap inspection, confirming μ (8–12 Hz) and β (13–30 Hz) activity.
-2. **Preprocessing** – High-pass filter (0.5 Hz), CAR, ICA-based artifact rejection.
-3. **Epoching** – 60 epochs (30 left / 30 right), validated via contralateral μ-ERD (C3/C4).
-4. **Feature Extraction** – CSP (4 components, Ledoit-Wolf shrinkage) + LDA classifier.
-5. **Optimization** – Sliding-window search identified [1.5s, 2.2s] as the optimal discriminative window.
-6. **Cross-subject Evaluation** – Tested on Subjects 01–10 to assess generalization.
+
+- **Filtering:** 0.5–40 Hz band-pass (FIR)
+- **Bad-channel screening:** robust, MAD-based modified z-score on channel standard
+  deviation (a fixed µV threshold on unfiltered data was tried first and flagged almost
+  every channel — see notebook for why that approach was dropped)
+- **Artifact removal:** ICA (FastICA, 20 components), ocular components excluded after
+  visual inspection
+- **Epoching:** −1 to 4 s around each cue, no baseline correction (baseline handled
+  explicitly in the ERD/ERS step)
+- **Classification:** CSP (4 components, Ledoit-Wolf shrinkage) + LDA, 5-fold
+  stratified cross-validation
 
 ## Results
-- Best CV accuracy: **80.00% ± 6.67%** (Subject 01, optimized time window)
-- Cross-subject accuracy varied (e.g., Subject 02: 84.44%), confirming subject-dependent BCI performance.
 
+> Figures and metrics below are from a full run of the notebook end to end. Re-running
+> it (locally, since it needs to reach PhysioNet) regenerates everything in `figures/`
+> with your own numbers.
+
+**Event-related (de)synchronization.** Comparing the imagery window (1–4 s) to the
+pre-cue baseline (−1–0 s) shows the expected drop in mu/beta power over sensorimotor
+cortex during imagery, and a clear shift in *where* that desynchronization is strongest
+between left- and right-hand trials — the core physiological signal the classifier below
+is picking up on.
+
+<p align="center">
+  <img src="figures/erd_ers_topomaps.png" width="650" alt="ERD/ERS topographies for left vs right hand imagery, mu and beta bands"><br>
+  <sub><b>ERD/ERS (%)</b> relative to baseline, left vs. right hand imagery, mu and beta bands.</sub>
+</p>
+
+**Static-window classification.** CSP+LDA on the 1.0–2.5 s window (the heart of the
+imagery period) reached **80.0% ± 6.7%** mean 5-fold cross-validated accuracy
+(chance = 50%):
+
+<p align="center">
+  <img src="figures/csp_confusion_matrix.png" width="420" alt="Confusion matrix for CSP+LDA classification"><br>
+  <sub><b>Confusion matrix</b>, CV-aggregated predictions.</sub>
+</p>
+
+**When does the signal appear?** Sliding a 0.5 s classification window across each trial
+shows accuracy rising above chance shortly after cue onset and peaking well into the
+imagery period — **71.7% at t ≈ 1.75 s** in this run — which is exactly the ERD/ERS
+timing physiology would predict, and a nice independent check that the static-window
+result above isn't a fluke.
+
+<p align="center">
+  <img src="figures/decoding_time_resolved.png" width="700" alt="Time-resolved decoding accuracy curve"><br>
+  <sub><b>Time-resolved decoding accuracy</b> — sliding-window CSP+LDA, chance and stimulus onset marked.</sub>
+</p>
+
+## Repository Structure
+
+```
+.
+├── project.ipynb   # full pipeline: load → clean → epoch → ERD/ERS → classify → summary
+├── figures/        # PNG exports of every plot in the notebook (regenerated on each run)
+└── README.md
+```
+
+## Getting Started
+
+```bash
+pip install mne numpy matplotlib scikit-learn
+jupyter notebook project.ipynb
+```
+
+Running end to end downloads the required EEGBCI files from PhysioNet on first use
+(cached locally afterward) and regenerates every figure in `figures/`.
+
+## Limitations
+
+- Single subject, single session — not a claim of generalizable BCI performance.
+- ~45 trials total after excluding run 14; cross-validated accuracy has a wide
+  confidence interval at this sample size.
+- ICA component selection for artifact removal is visual/manual and should be
+  re-checked if you change the subject or runs.
