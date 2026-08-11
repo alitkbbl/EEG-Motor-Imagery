@@ -6,6 +6,7 @@
 [![Jupyter Notebook](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](https://jupyter.org/)
 [![Dataset](https://img.shields.io/badge/Dataset-PhysioNet%20EEGMMIDB-2E7D32)](https://physionet.org/content/eegmmidb/1.0.0/)
 
+
 Decoding imagined left- vs. right-hand movement from 64-channel scalp EEG, using the [MNE](https://mne.tools/) ecosystem.
 
 ## 📌 Overview
@@ -34,10 +35,6 @@ Everything lives in a single, well-commented notebook: [`eeg_mi.ipynb`](eeg_mi.i
 | Runs used | 4, 8, 12 — imagined **left fist (T1) vs. right fist (T2)** |
 | Channels | 64 EEG, 10-05 montage |
 | Sampling rate | 160 Hz |
-
-> **Note:** run 14 is deliberately excluded. It records a *different* task (imagined
-> both-fists vs. both-feet) that reuses the same T1/T2 event labels — including it would
-> silently mix two unrelated conditions into one classifier.
 
 ## 🧪 Data & Signal Quality
 
@@ -86,7 +83,7 @@ is picking up on.
 </p>
 
 **Static-window classification.** CSP+LDA on the 1.0–2.5 s window (the heart of the
-imagery period) reached **82.3% ± 11%** mean 5-fold cross-validated accuracy
+imagery period) reached **82.3%** mean 5-fold cross-validated accuracy
 (chance = 50%):
 
 <p align="center">
