@@ -1,27 +1,31 @@
 # EEG Motor Imagery Classification — Left vs. Right Hand
 
-Decoding imagined left- vs. right-hand movement from 64-channel scalp EEG, using the
-[PhysioNet EEG Motor Movement/Imagery Dataset](https://physionet.org/content/eegmmidb/1.0.0/)
-and the [MNE-Python](https://mne.tools/) ecosystem.
 
-## Overview
+[![MNE-Python](https://img.shields.io/badge/MNE--Python-EEG%20Analysis-0B5394)](https://mne.tools/)
+[![BCI](https://img.shields.io/badge/Brain--Computer%20Interface-EEG-8A2BE2)](https://physionet.org/content/eegmmidb/1.0.0/)
+[![Jupyter Notebook](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](https://jupyter.org/)
+[![Dataset](https://img.shields.io/badge/Dataset-PhysioNet%20EEGMMIDB-2E7D32)](https://physionet.org/content/eegmmidb/1.0.0/)
+
+Decoding imagined left- vs. right-hand movement from 64-channel scalp EEG, using the [MNE](https://mne.tools/) ecosystem.
+
+## 📌 Overview
 
 Motor imagery — mentally rehearsing a movement without executing it — produces a measurable
 drop in sensorimotor mu (8–12 Hz) and beta (13–30 Hz) rhythms over the hemisphere
 contralateral to the imagined limb. This project builds a full pipeline that goes from raw
 EEG to a working single-trial classifier for that signal:
 
-1. **Load & inspect** raw 64-channel EEG (subject 1, motor-imagery runs)
-2. **Clean** the signal — band-pass filter, robust bad-channel screening, ICA-based
+1.  **Load & inspect** raw 64-channel EEG (subject 1, motor-imagery runs)
+2.  **Clean** the signal — band-pass filter, robust bad-channel screening, ICA-based
    ocular-artifact removal
-3. **Epoch** around each imagined-movement cue
-4. **Visualize** event-related (de)synchronization (ERD/ERS) topographies
-5. **Classify** left vs. right imagery with Common Spatial Patterns (CSP) + LDA, both in a
+3.  **Epoch** around each imagined-movement cue
+4.  **Visualize** event-related (de)synchronization (ERD/ERS) topographies
+5.  **Classify** left vs. right imagery with Common Spatial Patterns (CSP) + LDA, both in a
    fixed window and as a time-resolved sliding-window decoder
 
 Everything lives in a single, well-commented notebook: [`project.ipynb`](project.ipynb).
 
-## Dataset
+## 📊 Dataset
 
 | | |
 |---|---|
@@ -35,7 +39,7 @@ Everything lives in a single, well-commented notebook: [`project.ipynb`](project
 > both-fists vs. both-feet) that reuses the same T1/T2 event labels — including it would
 > silently mix two unrelated conditions into one classifier.
 
-## Data & Signal Quality
+## 🧪 Data & Signal Quality
 
 A quick look at the raw signal and its spectral content confirms clean, physiologically
 plausible EEG before any preprocessing — motor-band (mu/beta) power is concentrated over
@@ -51,7 +55,7 @@ central/motor channels, as expected.
   <sub><b>Topographic PSD</b> by band — delta through gamma — used as a sanity check before filtering/cleaning.</sub>
 </p>
 
-## Pipeline
+## ⚙️ Pipeline
 
 - **Filtering:** 0.5–40 Hz band-pass (FIR)
 - **Bad-channel screening:** robust, MAD-based modified z-score on channel standard
@@ -61,12 +65,12 @@ central/motor channels, as expected.
   visual inspection
 - **Epoching:** −1 to 4 s around each cue, no baseline correction (baseline handled
   explicitly in the ERD/ERS step)
-- **Classification:** CSP (4 components, Ledoit-Wolf shrinkage) + LDA, 5-fold
+- **Classification:** CSP (6 components, Ledoit-Wolf shrinkage) + LDA, 5-fold
   stratified cross-validation
 
-## Results
+## 📈 Results
 
-> Figures and metrics below are from a full run of the notebook end to end. Re-running
+> 💡 Figures and metrics below are from a full run of the notebook end to end. Re-running
 > it (locally, since it needs to reach PhysioNet) regenerates everything in `figures/`
 > with your own numbers.
 
@@ -101,29 +105,9 @@ result above isn't a fluke.
   <sub><b>Time-resolved decoding accuracy</b> — sliding-window CSP+LDA, chance and stimulus onset marked.</sub>
 </p>
 
-## Repository Structure
 
-```
-.
-├── project.ipynb   # full pipeline: load → clean → epoch → ERD/ERS → classify → summary
-├── figures/        # PNG exports of every plot in the notebook (regenerated on each run)
-└── README.md
-```
+## 📄 Summary
 
-## Getting Started
-
-```bash
-pip install mne numpy matplotlib scikit-learn
-jupyter notebook project.ipynb
-```
-
-Running end to end downloads the required EEGBCI files from PhysioNet on first use
-(cached locally afterward) and regenerates every figure in `figures/`.
-
-## Limitations
-
-- Single subject, single session — not a claim of generalizable BCI performance.
-- ~45 trials total after excluding run 14; cross-validated accuracy has a wide
-  confidence interval at this sample size.
-- ICA component selection for artifact removal is visual/manual and should be
-  re-checked if you change the subject or runs.
+This project implements a complete EEG motor-imagery decoding pipeline using the PhysioNet EEGBCI dataset and the MNE-Python ecosystem.  
+After preprocessing and artifact removal, CSP + LDA classification successfully distinguishes imagined left- vs. right-hand movement from single-trial EEG activity.  
+Results show physiologically meaningful mu/beta ERD patterns and achieve up to **82% cross-validated accuracy** on the selected imagery window.
