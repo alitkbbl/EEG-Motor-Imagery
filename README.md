@@ -3,7 +3,6 @@
 
 [![MNE-Python](https://img.shields.io/badge/MNE--Python-EEG%20Analysis-0B5394)](https://mne.tools/)
 [![BCI](https://img.shields.io/badge/Brain--Computer%20Interface-EEG-8A2BE2)](https://physionet.org/content/eegmmidb/1.0.0/)
-[![Jupyter Notebook](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](https://jupyter.org/)
 [![Dataset](https://img.shields.io/badge/Dataset-PhysioNet%20EEGMMIDB-2E7D32)](https://physionet.org/content/eegmmidb/1.0.0/)
 
 
